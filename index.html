@@ -1,0 +1,30 @@
+ <h1>Web Proxy GUI</h1>
+  <p>Enter a URL to fetch via the proxy:</p>
+  <input type="text" id="urlInput" placeholder="https://example.com" />
+  <button onclick="fetchViaProxy()">Fetch</button>
+  <h2>Result:</h2>
+  <pre id="result">Nothing yet...</pre>
+
+  <script>
+    async function fetchViaProxy() {
+      const url = document.getElementById('urlInput').value;
+      const resultEl = document.getElementById('result');
+
+      try {
+        const response = await fetch(`/api/proxy?url=${encodeURIComponent(url)}`);
+        const contentType = response.headers.get("content-type");
+
+        if (contentType && contentType.includes("application/json")) {
+          const data = await response.json();
+          resultEl.textContent = JSON.stringify(data, null, 2);
+        } else {
+          const text = await response.text();
+          resultEl.textContent = text;
+        }
+      } catch (err) {
+        resultEl.textContent = "Error: " + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
