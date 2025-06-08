@@ -9,7 +9,7 @@
     }
     #htmlViewer {
       width: 100%;
-      height: 500px;
+      height: 600px;
       border: 1px solid #ccc;
       margin-top: 10px;
     }
@@ -63,10 +63,18 @@
                 link.addEventListener('click', function(event) {
                   event.preventDefault(); // Prevent the default link behavior
                   const newUrl = this.href;
-                  console.log(`Opening link: ${newUrl}`);
 
-                  // Optionally update iframe content to load the new link
-                  iframe.src = newUrl;
+                  // Check if the link is external
+                  const currentDomain = window.location.hostname;
+                  const linkDomain = new URL(newUrl).hostname;
+
+                  if (linkDomain !== currentDomain) {
+                    // Open external links in the main window
+                    window.open(newUrl, '_blank');
+                  } else {
+                    // For internal links, load the page inside the iframe
+                    iframe.src = newUrl;
+                  }
                 });
               });
             };
