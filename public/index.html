@@ -24,7 +24,7 @@
   <h2>Raw Result:</h2>
   <pre id="result">Nothing yet...</pre>
 
-  <h2>Rendered HTML View:</h2>
+  <h2>Rendered HTML View (with JS):</h2>
   <iframe id="htmlViewer"></iframe>
 
   <script>
@@ -32,6 +32,10 @@
       const url = document.getElementById('urlInput').value;
       const resultEl = document.getElementById('result');
       const iframe = document.getElementById('htmlViewer');
+
+      // Clear previous content
+      iframe.srcdoc = '';
+      resultEl.textContent = 'Fetching...';
 
       try {
         const response = await fetch(`/api/proxy?url=${encodeURIComponent(url)}`);
@@ -45,16 +49,34 @@
           const text = await response.text();
           resultEl.textContent = text;
 
-          // Set the HTML content into the iframe for rendering
+          // Directly set the iframe to load the content and execute JS
           if (contentType && contentType.includes("text/html")) {
-            iframe.srcdoc = text;
+            iframe.src = url;  // Load the page and run the JavaScript
+
+            // After the iframe has loaded the content, we modify links inside it
+            iframe.onload = () => {
+              const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+
+              // Intercept all link clicks
+              const links = iframeDoc.querySelectorAll('a');
+              links.forEach(link => {
+                link.addEventListener('click', function(event) {
+                  event.preventDefault(); // Prevent the default link behavior
+                  const newUrl = this.href;
+                  console.log(`Opening link: ${newUrl}`);
+
+                  // Optionally update iframe content to load the new link
+                  iframe.src = newUrl;
+                });
+              });
+            };
           } else {
             iframe.srcdoc = `<pre>${text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>`;
           }
         }
       } catch (err) {
         resultEl.textContent = "Error: " + err.message;
-        iframe.srcdoc = '';
+        iframe.srcdoc = ''; // Clear iframe content on error
       }
     }
   </script>
